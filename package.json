@@ -1,0 +1,28 @@
+{
+  "name": "lidaexpo-otp-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Iran-hosted, authenticated relay for Lida Expo OTP delivery through IPPanel.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/app.test.ts",
+    "check": "npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@hono/node-server": "2.1.1",
+    "hono": "4.13.7",
+    "zod": "4.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.12",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  }
+}
