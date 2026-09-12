@@ -1,39 +1,38 @@
 # Lida Expo OTP Relay
 
-یک رلهٔ سرور-به-سرور کوچک برای ارسال OTP لیدا از IPPanel، روی زیرساخت داخل ایران. این سرویس فقط یک درخواست امضاشده از Worker لیدا را می‌پذیرد و **پراکسی عمومی نیست**.
+یک رلهٔ سرور-به-سرور کوچک برای درخواست IPPanel لیدا، روی زیرساخت داخل ایران. این سرویس فقط endpoint ثابت IPPanel را دارد و **پراکسی عمومی نیست**.
 
 ## قرارداد API
 
-`POST /v1/otp/send`
+`POST /v1/api/send`
 
 ```json
 {
-  "recipient": "+989121234567",
-  "otp": "123456"
+  "sending_type": "pattern",
+  "from_number": "+983000505",
+  "code": "pattern-code",
+  "recipients": ["+989121234567"],
+  "params": { "OTP": "123456" }
 }
 ```
 
-هدرهای لازم:
+این درخواست و headerهای `Authorization`، `Content-Type` و `Accept` بدون تغییر به `https://edge.ippanel.com/v1/api/send` فرستاده می‌شوند. پاسخ IPPanel (status، headerها و body) نیز بدون تبدیل بازگردانده می‌شود.
+
+نمونهٔ headerها:
 
 ```text
 Content-Type: application/json
-X-Lida-Timestamp: Unix timestamp in milliseconds
-X-Lida-Signature: base64url HMAC-SHA256(timestamp + "." + raw JSON body)
+Authorization: IPPanel token from Cloudflare Worker
+Content-Type: application/json
 ```
 
-- ساعت درخواست فقط تا ۶۰ ثانیه اختلاف می‌تواند داشته باشد.
-- فقط شمارهٔ موبایل ایرانی با قالب E.164 و OTP شش‌رقمی پذیرفته می‌شود.
-- Authorization مربوط به IPPanel فقط در Secret محیط همروش است، نه در Git و نه در Cloudflare.
-- رله فقط Pattern مشخص IPPanel را فراخوانی می‌کند و URL یا payload دلخواه را عبور نمی‌دهد.
+- Authorization، شمارهٔ ارسال‌کننده و Pattern Code در همروش یا Git ذخیره نمی‌شوند؛ فقط Worker لیدا آن‌ها را از Secret/Variableهای فعلی خود می‌فرستد.
+- مسیر و hostname مقصد در کد رله ثابت است؛ URL یا endpoint دلخواه هرگز پذیرفته نمی‌شود.
 
 ## تنظیم همروش
 
 | نام | محل نگهداری |
 | --- | --- |
-| `IPPANEL_AUTHORIZATION` | Secret همروش |
-| `OTP_RELAY_SIGNING_SECRET` | Secret همروش؛ دقیقاً هم‌ارز Secret در Cloudflare |
-| `IPPANEL_FROM_NUMBER` | متغیر عادی همروش |
-| `IPPANEL_PATTERN_CODE` | متغیر عادی همروش |
 | `PORT` | متغیر عادی، `3000` |
 
 دامنهٔ پیشنهادی سرویس: `otp-relay.lidaexpo.ir`.

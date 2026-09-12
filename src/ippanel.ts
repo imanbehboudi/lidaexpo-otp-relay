@@ -1,36 +1,24 @@
-import type { RelayConfig } from "./config.js";
-
 const ippanelUrl = "https://edge.ippanel.com/v1/api/send";
 
-export type OtpDelivery = {
-  recipient: string;
-  otp: string;
-};
-
-export async function sendIppanelPattern(
-  config: RelayConfig,
-  delivery: OtpDelivery,
+/**
+ * Forwards the original IPPanel request without interpreting its credentials,
+ * Pattern configuration, or body. The destination is intentionally fixed.
+ */
+export async function forwardToIppanel(
+  rawBody: string,
+  inboundHeaders: Headers,
   fetcher: typeof fetch = fetch,
-): Promise<boolean> {
-  try {
-    const response = await fetcher(ippanelUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: config.IPPANEL_AUTHORIZATION,
-      },
-      body: JSON.stringify({
-        sending_type: "pattern",
-        from_number: config.IPPANEL_FROM_NUMBER,
-        code: config.IPPANEL_PATTERN_CODE,
-        recipients: [delivery.recipient],
-        params: { OTP: delivery.otp },
-      }),
-      signal: AbortSignal.timeout(10_000),
-    });
-
-    return response.ok;
-  } catch {
-    return false;
+) {
+  const headers = new Headers();
+  for (const headerName of ["authorization", "content-type", "accept"]) {
+    const value = inboundHeaders.get(headerName);
+    if (value) headers.set(headerName, value);
   }
+
+  return fetcher(ippanelUrl, {
+    method: "POST",
+    headers,
+    body: rawBody,
+    signal: AbortSignal.timeout(10_000),
+  });
 }
